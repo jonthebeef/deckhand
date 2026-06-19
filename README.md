@@ -62,7 +62,9 @@ So the context stays deliberately tight: one clear task, the minimum surrounding
 
 ## Install
 
-Drop the two skill folders into your Claude Code skills directory:
+**The easy way (recommended):** you don't have to move anything by hand. Drag the two skill folders straight into a **Claude Code** or **Codex** session (or just point the agent at them) and say something like *"install these two skills for me"*. The agent knows where skills live (`~/.claude/skills/` for Claude Code) and will put them in the right place for you. Carry straight on into first-run setup below and it'll handle that too.
+
+**The manual way:** copy the two folders into your Claude Code skills directory yourself:
 
 ```bash
 cp -R ticket-lifecycle managing-project-backlog ~/.claude/skills/
