@@ -9,17 +9,21 @@ The quality of the implementation depends entirely on the quality of the prompt.
 Every implementation agent prompt must include:
 
 1. **Context** — what repo, what branch to create from, what branch name to use
-2. **The problem** — what's wrong, with file paths and line numbers
-3. **The fix** — exactly what to change, with code snippets where helpful
-4. **Test / verification expectations** — what to test or how to verify manually
-5. **Known pitfalls** — relevant patterns from the learnings files (see below)
-6. **Verification steps** — commands to run locally before pushing
-7. **Git operations** — exact commit message, PR title, PR body
+2. **Epic context** — the parent epic's user-facing goal in a sentence or two, plus any sibling tickets that overlap this work, so the agent understands how its ticket serves the product (keep it short — a summary, not the whole epic)
+3. **The problem** — what's wrong, with file paths and line numbers
+4. **The fix** — exactly what to change, with code snippets where helpful
+5. **Test / verification expectations** — what to test or how to verify manually
+6. **Known pitfalls** — relevant patterns from the learnings files (see below)
+7. **Verification steps** — commands to run locally before pushing
+8. **Git operations** — exact commit message, PR title, PR body
 
 ### Example Prompt
 
 ```
 You are implementing GitHub issue #32 in the <OWNER>/<REPO> repo. Branch from `main`. Branch name: `feat/32-files-dashboard`.
+
+## Epic Context
+This ticket is part of epic #21 — [one or two sentence summary of the epic's user-facing goal]. Related sibling tickets: #30 ([what it delivers]), #31 ([what it delivers]). Build this so it fits that larger goal and stays consistent with the siblings; don't duplicate what they cover.
 
 ## The Problem
 [Concrete description of what's broken or missing, with file paths and line numbers]

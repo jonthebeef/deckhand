@@ -73,11 +73,12 @@ If neither file exists yet, this is fine — start one as you go. Capture findin
 
 1. **Resolve input to issue numbers** — fetch from epic sub-issues or board column if needed
 2. **Read every issue** — `gh issue view {n}` for each, understand the full scope
-3. **Check existing assignees** — if an issue is already assigned to someone other than the current `gh` user, STOP and ask before taking it over. The other person may already be working on it.
-4. **Read all affected source files** — understand the code before dispatching agents
-5. **Read the learnings files** — load current review patterns to include in agent prompts
-6. **Create task list** — one task per issue for progress tracking
-7. **Assign each issue to the picking-up user, then move to Doing** — assignment is mandatory and must happen before the status flip. Use `GH_USER=$(gh api user --jq .login)` and `gh issue edit N --add-assignee "$GH_USER"`. See the "Assigning the picker" section in `managing-project-backlog` for the full rule.
+3. **Read each issue's parent epic and sibling sub-issues** — for every ticket, fetch its parent epic (the user-facing goal, the "What's Been Built" / "What's Next" sections) and list its sibling sub-issues, so you understand how the piece fits the bigger picture before dispatching. `managing-project-backlog` §4 (Context Gathering) has the exact `gh` commands. Distil what you learn into a short **epic-context summary per ticket** to hand the worker agent — don't make every worker re-read the whole epic; gather it once here and pass down only what's relevant, keeping each agent's context tight.
+4. **Check existing assignees** — if an issue is already assigned to someone other than the current `gh` user, STOP and ask before taking it over. The other person may already be working on it.
+5. **Read all affected source files** — understand the code before dispatching agents
+6. **Read the learnings files** — load current review patterns to include in agent prompts
+7. **Create task list** — one task per issue for progress tracking
+8. **Assign each issue to the picking-up user, then move to Doing** — assignment is mandatory and must happen before the status flip. Use `GH_USER=$(gh api user --jq .login)` and `gh issue edit N --add-assignee "$GH_USER"`. See the "Assigning the picker" section in `managing-project-backlog` for the full rule.
 
 Board details are in `references/board-config.md`.
 
@@ -100,6 +101,8 @@ Each agent must:
 9. Report the result
 
 Write detailed, specific agent prompts. See `references/agent-prompts.md` for structure, examples, and anti-patterns. Never delegate understanding — include file paths, line numbers, and exact changes in every prompt.
+
+**Include epic context in every agent prompt.** Add a short "Epic context" section summarising the parent epic's goal and any sibling tickets that touch the same area (from the per-ticket summary you gathered in Phase 1). This gives each worker enough big-picture awareness to build the right thing — how its ticket serves the product — without loading the full epic into its window. Tight brief, clear purpose.
 
 **Include learnings in every agent prompt.** Append a "Known pitfalls" section to each prompt summarising the relevant patterns from the learnings files. This prevents agents from repeating mistakes that past reviews have already caught.
 
