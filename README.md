@@ -7,6 +7,29 @@
 
 The two pair best: `managing-project-backlog` defines the conventions; `ticket-lifecycle` applies them at speed across many tickets.
 
+## Why this exists
+
+I tried a lot of trackers — Linear, even building my own — before realising that for personal, vibe-coded projects, **GitHub Projects is free, already where the code lives, and perfectly viable**. The real unlock isn't the board itself, it's that it's a board *both you and your coding agent can drive*. Claude Code (and almost certainly Codex) can read it, write to it, and move cards across it through the `gh` CLI — no extra SaaS subscription, no separate API, no glue code. The plan lives somewhere you can both see and edit, and that shared source of truth is the whole point.
+
+## How I use it
+
+1. **Long planning session.** I talk the work through with Claude, then get it to break the outcome into **epics**.
+2. **Claude writes its own tickets.** From each epic it drafts the sub-issues — `managing-project-backlog` keeps them structured and linked.
+3. **I point at the work.** Either "take this epic", or something cross-cutting and end-to-end. I name ticket/epic numbers, or just drag cards into **Prioritized**.
+4. **`ticket-lifecycle` takes over.** It picks up the specified work, dispatches **multiple subagents, each in its own git worktree**, and delivers the tickets in parallel.
+5. **Quality gates, automatically.** Each PR gets a **fresh, isolated review agent**; the skill actions the feedback in a loop (up to 5 rounds) and waits for **CI to go green** at each step, if you've configured it.
+6. **It tells me when it's done.** Set and forget.
+
+Because the quality gates — independent PR review plus CI — are baked in, I get a genuine degree of confidence the work is *solid*, not just plausible. I've run this across several projects now and, when it's working (which is basically always), it lets me set and forget a lot of the work I'm doing.
+
+A few honest notes:
+
+- **Use Opus 4.8 (or the latest Opus).** The whole loop leans on the model's judgement — especially the reviewer. On a smaller model, your mileage will vary.
+- **The `simplify` step matters.** Invoking it before review genuinely keeps the codebase clean as the project grows. Don't skip it lightly.
+- **Use at your own risk** — but for me, across several projects, it's been reliable.
+
+And yeah — there's a strange little buzz in watching tickets fly across the board into **Done** on their own.
+
 ## Requirements
 
 - [Claude Code](https://claude.com/claude-code) installed
