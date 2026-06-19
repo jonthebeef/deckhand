@@ -39,6 +39,14 @@ A few honest notes:
 
 And yeah - there's a strange little buzz in watching tickets fly across the board into **Done** on their own.
 
+## Tight context, big-picture awareness
+
+Something I've found over the last couple of years: agents do their best work when they're handed a *hyper-specific* brief, but they still need to understand the wider goal, or you get technically-correct work that quietly misses the point. The board structure is what lets you give them both at once.
+
+Each agent picks up a **single ticket** - that's the tight, specific brief. But because every ticket links back to its **parent epic** and sits alongside its **sibling tickets**, the agent can pull in just enough surrounding context to understand *what* it's building and *why it matters to the product*, without dragging the entire project history into its window. Add its read of the codebase it's touching, and that's the full picture it needs.
+
+So the context stays deliberately tight: one clear task, the minimum surrounding detail to do it well, and an understanding of the product goal it serves. Narrow enough to stay focused, wide enough to make good calls. In my experience that combination is what gets you a genuinely good result rather than a merely plausible one.
+
 ## Requirements
 
 - [Claude Code](https://claude.com/claude-code) installed
