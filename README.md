@@ -62,9 +62,22 @@ So the context stays deliberately tight: one clear task, the minimum surrounding
 
 ## Install
 
+**What you actually need:** only the two skill folders, `ticket-lifecycle/` and `managing-project-backlog/`. Everything else at the repo root (`bump.sh`, `CLAUDE.md`, the root `VERSION`, this `README`) is for *maintaining* deckhand, not running it, so you can ignore it.
+
 **The easy way (recommended):** you don't have to move anything by hand. Drag the two skill folders straight into a **Claude Code** or **Codex** session (or just point the agent at them) and say something like *"install these two skills for me"*. The agent knows where skills live (`~/.claude/skills/` for Claude Code) and will put them in the right place for you. Carry straight on into first-run setup below and it'll handle that too.
 
-**The manual way:** copy the two folders into your Claude Code skills directory yourself:
+**One line, no clone (grabs only the skills):**
+
+```bash
+mkdir -p ~/.claude/skills
+curl -fsSL https://codeload.github.com/jonthebeef/deckhand/tar.gz/refs/heads/main \
+  | tar -xz -C ~/.claude/skills --strip-components=1 \
+      deckhand-main/ticket-lifecycle deckhand-main/managing-project-backlog
+```
+
+This drops just the two skill folders into `~/.claude/skills/`, nothing else. On Codex or Cursor, point `-C` at that platform's skills/rules location instead.
+
+**The manual way (if you've already cloned the repo):**
 
 ```bash
 cp -R ticket-lifecycle managing-project-backlog ~/.claude/skills/
