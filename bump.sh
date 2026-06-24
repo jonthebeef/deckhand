@@ -16,8 +16,8 @@ ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 FILES="
 $ROOT/VERSION
-$ROOT/ticket-lifecycle/VERSION
-$ROOT/managing-project-backlog/VERSION
+$ROOT/skills/ticket-lifecycle/VERSION
+$ROOT/skills/managing-project-backlog/VERSION
 "
 
 CURRENT=$(tr -d '[:space:]' < "$ROOT/VERSION" 2>/dev/null || echo "")
@@ -63,8 +63,16 @@ for f in $FILES; do
   echo "  wrote $f"
 done
 
+# Keep the plugin manifest version in sync (marketplaces read it from here).
+PLUGIN_JSON="$ROOT/.claude-plugin/plugin.json"
+if [ -f "$PLUGIN_JSON" ]; then
+  TMP="$PLUGIN_JSON.tmp"
+  sed -E 's/("version"[[:space:]]*:[[:space:]]*")[^"]*(")/\1'"$NEW"'\2/' "$PLUGIN_JSON" > "$TMP" && mv "$TMP" "$PLUGIN_JSON"
+  echo "  updated $PLUGIN_JSON"
+fi
+
 echo
 echo "Next, publish it:"
-echo "  git add VERSION */VERSION"
+echo "  git add VERSION skills/*/VERSION .claude-plugin/plugin.json"
 echo "  git commit -m \"release: v$NEW\""
 echo "  git push"

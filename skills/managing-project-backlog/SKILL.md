@@ -1,6 +1,6 @@
 ---
 name: managing-project-backlog
-description: "MUST be invoked at the START of any session that touches the GitHub Projects board, BEFORE running any gh issue / gh project / gh pr command tied to ticket workflow. Trigger phrases include but are not limited to - 'the backlog', 'the board', 'the kanban', 'this epic', 'this ticket', 'this issue', 'pick up #N', 'work on #N', 'what's next', 'what should I do next', 'move to Doing/Review/Done', 'create an epic', 'create a sub-issue', 'break this into tickets', 'add to the project', 'prioritize', 'plan this work', 'what's in the backlog', 'review the board'. Also fires when the user pastes a GitHub Projects URL, an issue number prefixed with #, or asks about how a ticket fits its epic. If in doubt — invoke. The cost of invoking unnecessarily is near zero; the cost of skipping is silent drift from the team's workflow."
+description: "Plan and maintain a GitHub Projects v2 board with the deckhand workflow: create epics, break them into linked sub-issues, prioritise, assign owners, and move tickets across the kanban (Backlog, Prioritized, Doing, Review, Done). Use when the user is clearly working a GitHub Projects board, asks to plan or organise backlog work, pastes a GitHub Projects URL, references the deckhand board workflow, or invokes /managing-project-backlog. Prefer the explicit command for ad-hoc use. Do not fire on a generic mention of an issue number, 'fix this', or 'what's next' unless GitHub Projects board work is clearly intended and a board is configured."
 user-invocable: true
 ---
 
@@ -8,7 +8,7 @@ user-invocable: true
 
 Automate the GitHub Projects kanban workflow — from epic creation through to merged. Every piece of work traces back to an epic; every epic connects to the product roadmap.
 
-> **⛔ Invocation rule — read first.** This skill is the **default workflow** for any work that touches a GitHub Projects board. If the current session involves issues, epics, sub-issues, the kanban, prioritization, or "what should I work on next" — you are inside this skill's scope and must follow it. New sessions in particular are at risk of skipping this skill because the kanban context isn't in conversation history yet — when a user mentions "the board", "the backlog", "a ticket", "#N", or any epic/sub-issue concept, that IS the signal. Invoke immediately, before running any `gh` command or proposing work order. Re-invoke at the top of every new session that involves backlog work, even if it seems obvious.
+> **⛔ Invocation rule — read first.** This skill governs the deckhand GitHub Projects board workflow. Use it when the user is clearly working a GitHub Projects board: epics, sub-issues, the kanban, prioritisation, or "what should I pick up next" on a configured board. A pasted GitHub Projects URL, or an explicit request to plan or organise the backlog, is a clear signal. A bare issue number or a generic "fix this" is **not**, on its own — only treat board work as in scope when the user clearly means the board and one is configured (see first-run setup). Once you are doing board operations, follow this skill's conventions consistently for the rest of the session.
 >
 > If you find yourself about to run `gh issue ...`, `gh project ...`, or pick up an issue without having read this skill in the current session — STOP and load it first. The board IDs, column mappings, and the "read epic + siblings before starting" protocol below are not optional context.
 
@@ -38,7 +38,7 @@ Automate the GitHub Projects kanban workflow — from epic creation through to m
 > [ -f "$DIR/.last-update-check" ] && [ -z "$(find "$DIR/.last-update-check" -mtime +0 2>/dev/null)" ] && exit 0  # checked < 24h ago
 > touch "$DIR/.last-update-check"
 > LOCAL=$(cat "$DIR/VERSION" 2>/dev/null)
-> REMOTE=$(curl -fsS --max-time 3 https://raw.githubusercontent.com/jonthebeef/deckhand/main/managing-project-backlog/VERSION 2>/dev/null)
+> REMOTE=$(curl -fsS --max-time 3 https://raw.githubusercontent.com/jonthebeef/deckhand/main/skills/managing-project-backlog/VERSION 2>/dev/null)
 > [ -n "$REMOTE" ] && [ "$REMOTE" != "$LOCAL" ] && echo "deckhand update available: $LOCAL -> $REMOTE"
 > ```
 >

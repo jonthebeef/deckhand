@@ -1,15 +1,15 @@
 ---
 name: ticket-lifecycle
-description: "DEFAULT workflow for any ticket / PR / fix work in a GitHub-Projects repo. Use when the user asks to 'iterate on tickets', 'fix these issues', 'work through the backlog', 'run ticket lifecycle', 'process these tickets', or provides issue numbers / an epic / a board column. ALSO use — in adapted form — for any single ticket, single PR, or fix where the full Phase 1→7 lifecycle (or any meaningful subset of it) applies. The skill is modular: use only the phases that fit. Do not refuse to invoke just because you can't run every phase, can't dispatch subagents, or are in a constrained environment (single thread, sequential, no worktrees). Pick the phases that apply and run them; skip the rest explicitly."
+description: "Run the deckhand ticket lifecycle: take GitHub issues from a GitHub Projects board through implementation, isolated adversarial review, a fix-loop, CI gating, and merge. Use when the user explicitly asks to 'iterate on these tickets', 'run the ticket lifecycle', 'process the prioritized column', work a batch of issue numbers or an epic through to merged, or invokes /ticket-lifecycle. Modular: use whichever of the Phase 1 to 7 steps fit (single ticket, single PR, cleanup-only, and constrained single-thread environments all work). Do not fire on a generic 'fix this bug' or a bare issue number unless the user clearly wants the full board-driven lifecycle and a GitHub Projects board is configured."
 ---
 
 # Ticket Lifecycle
 
 Automated batch ticket processing for any GitHub-Projects-driven repo. Take a set of GitHub issues, implement fixes, run code review, address feedback, watch CI, merge when green, and move tickets across the Kanban board.
 
-> **⛔ Invocation rule — this is the DEFAULT, and it is MODULAR.**
+> **⛔ Invocation rule — this skill is MODULAR.**
 >
-> Ticket Lifecycle is the default operating mode for ticket / PR / fix work in this codebase. The full Phase 0→7 sequence describes the **ideal** run: many tickets in parallel worktrees, fresh-context reviewers, the lot. But the value of the skill is the **discipline of the phases**, not the parallelism. Most sessions will use a subset:
+> Ticket Lifecycle is for running a GitHub Projects board's tickets through their full lifecycle; reach for it when that is what the user wants, not for every passing mention of a bug or issue. The full Phase 0→7 sequence describes the **ideal** run: many tickets in parallel worktrees, fresh-context reviewers, the lot. But the value of the skill is the **discipline of the phases**, not the parallelism. Most sessions will use a subset:
 >
 > - **Solo / single ticket, sequential, no worktrees** → still use this skill. Drop Phase 2's parallelism, run one Implement → Simplify → Review → Fix-loop → Merge cycle. Phase 0 (load learnings) and Phase 3.5 (capture learnings) still apply.
 > - **Fixing review feedback on an existing PR** → start at Phase 4. You already have implementation; just run the fix-and-review loop until clean, then Phase 6 (Merge) and Phase 7 (Cleanup).
@@ -21,7 +21,7 @@ Automated batch ticket processing for any GitHub-Projects-driven repo. Take a se
 >
 > **Phases are independently valuable.** Phase 3 (isolated review) on its own catches bugs. Phase 4 (review loop) on its own raises PR quality. Phase 5 (sub-issue linking) on its own keeps the backlog navigable. Use what fits.
 >
-> When in doubt — invoke, then state which phases you're using.
+> When the user wants the board-driven lifecycle, invoke and state which phases you're using.
 
 > **⚠ First-invocation protocol (read this BEFORE running any phase).**
 >
@@ -51,7 +51,7 @@ Automated batch ticket processing for any GitHub-Projects-driven repo. Take a se
 > [ -f "$DIR/.last-update-check" ] && [ -z "$(find "$DIR/.last-update-check" -mtime +0 2>/dev/null)" ] && exit 0  # checked < 24h ago
 > touch "$DIR/.last-update-check"
 > LOCAL=$(cat "$DIR/VERSION" 2>/dev/null)
-> REMOTE=$(curl -fsS --max-time 3 https://raw.githubusercontent.com/jonthebeef/deckhand/main/ticket-lifecycle/VERSION 2>/dev/null)
+> REMOTE=$(curl -fsS --max-time 3 https://raw.githubusercontent.com/jonthebeef/deckhand/main/skills/ticket-lifecycle/VERSION 2>/dev/null)
 > [ -n "$REMOTE" ] && [ "$REMOTE" != "$LOCAL" ] && echo "deckhand update available: $LOCAL -> $REMOTE"
 > ```
 >
