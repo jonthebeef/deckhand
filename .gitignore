@@ -1,6 +1,10 @@
 # macOS
 .DS_Store
 
+# Update-check runtime markers (created next to installed skills, never committed)
+.last-update-check
+.no-update-check
+
 # Populated per-project board config — contains your real IDs, not for the repo.
 # Ship only the placeholder templates; users generate their own via setup.sh.
 # (Uncomment if you ever commit a populated copy by accident.)

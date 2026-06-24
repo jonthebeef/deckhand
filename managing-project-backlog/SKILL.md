@@ -28,6 +28,36 @@ Automate the GitHub Projects kanban workflow — from epic creation through to m
 >
 > Do not invent IDs. Do not skip setup and hope it works. Only proceed to the rest of the workflow once `board-config.md` has no `<...>` placeholders left. The "Project Discovery" section below shows how to look them up manually if needed.
 
+> **🔄 Staying up to date (quiet by default).**
+>
+> On your **first invocation in a session**, run a throttled version check from the folder this skill is installed in (the one holding this `SKILL.md` and its `VERSION`). Suggested one-liner — adapt the path; on Codex/Cursor it's wherever this skill actually lives:
+>
+> ```bash
+> DIR="<this skill's folder>"
+> [ -f "$DIR/.no-update-check" ] && exit 0                                                                        # user opted out
+> [ -f "$DIR/.last-update-check" ] && [ -z "$(find "$DIR/.last-update-check" -mtime +0 2>/dev/null)" ] && exit 0  # checked < 24h ago
+> touch "$DIR/.last-update-check"
+> LOCAL=$(cat "$DIR/VERSION" 2>/dev/null)
+> REMOTE=$(curl -fsS --max-time 3 https://raw.githubusercontent.com/jonthebeef/deckhand/main/managing-project-backlog/VERSION 2>/dev/null)
+> [ -n "$REMOTE" ] && [ "$REMOTE" != "$LOCAL" ] && echo "deckhand update available: $LOCAL -> $REMOTE"
+> ```
+>
+> - **If a newer version is reported:** tell the user once, briefly (*"deckhand $REMOTE is available, you have $LOCAL — want me to update it?"*), then get on with their actual request. Never block on it.
+> - **If current, offline, or the check errors:** say nothing. Silence is the default.
+> - Don't offer twice in one session — if `ticket-lifecycle` already offered, skip.
+> - To disable: the user drops an empty `.no-update-check` file in this folder, or just asks. See the README's "Staying up to date" section.
+
+> **⬆️ Updating (only on request or an accepted offer) — update in place, don't break anything.**
+>
+> 1. **Confirm** with the user first.
+> 2. **Fetch latest:** download the repo (e.g. `curl -fsSL https://codeload.github.com/jonthebeef/deckhand/tar.gz/refs/heads/main` to a temp dir, extract).
+> 3. **Overwrite in place** — replace `SKILL.md` and `VERSION` in this skill's installed folder with the new copies.
+> 4. **PRESERVE — never overwrite:** `board-config.md` (the user's real board IDs), the `.no-update-check` / `.last-update-check` markers, and anything else populated locally.
+> 5. **Verify:** confirm `board-config.md` is untouched, confirm the new `VERSION`, list what changed. If anything would clobber the user's config, STOP and ask.
+> 6. **Report** the new version and that config was preserved. Do the same for `ticket-lifecycle` if it's installed alongside.
+>
+> Same procedure on Claude Code, Codex, and Cursor — just write to wherever this skill actually lives on that platform.
+
 ## Workflow
 
 ```dot

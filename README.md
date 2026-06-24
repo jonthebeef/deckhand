@@ -123,6 +123,26 @@ After install + setup, just talk to Claude Code naturally:
 
 You can also explicitly type `/ticket-lifecycle` or `/managing-project-backlog` to invoke them.
 
+## Staying up to date
+
+deckhand checks for its own updates, quietly. The first time either skill runs in a session it does a throttled version check (at most once every 24 hours): it reads its local `VERSION`, fetches the latest from this repo, and compares. If a newer version exists it mentions it once and offers to update. If you are already current, offline, or the check fails, it says nothing and carries on. It is best-effort and deliberately low-key, not a background process.
+
+To turn it off, drop an empty file named `.no-update-check` into the skill's folder (e.g. `~/.claude/skills/ticket-lifecycle/.no-update-check`), or just tell your agent to stop checking. To force a check any time, ask "is deckhand up to date?".
+
+## Updating
+
+When you accept an update (or ask for one), the agent updates the skills in place: it fetches the latest files from this repo and overwrites the skill files where they are installed, while preserving your populated `board-config.md` so your board wiring is never clobbered. It then verifies your config is untouched and reports the new version. There is no update script to run and nothing to reinstall; the agent does it and checks its own work.
+
+## Platform support
+
+deckhand is plain Markdown plus `gh` and `curl`, so it runs anywhere an agent can run a shell. Only the install location differs per platform:
+
+- **Claude Code:** drop the skill folders in `~/.claude/skills/` (or let the agent install them, see Install above).
+- **Codex:** Codex loads skills natively; place the folders in your Codex skills location and it picks them up.
+- **Cursor:** Cursor uses rules rather than skills, so reference the two `SKILL.md` files as project rules (e.g. under `.cursor/rules/`) or from your `AGENTS.md`.
+
+The update check and the update itself both work relative to wherever the skill actually lives, so they behave the same on all three.
+
 ## Troubleshooting
 
 - **`gh: command not found`** - install the GitHub CLI and `gh auth login`.
@@ -133,6 +153,10 @@ You can also explicitly type `/ticket-lifecycle` or `/managing-project-backlog` 
 ## Adapting beyond GitHub
 
 The skills are GitHub Projects-shaped today. If you use Linear / Jira / Plane / etc., the workflow discipline (Phase 0-7) still applies; the mechanics (the `gh` and GraphQL calls) would need rewriting against your API. The principles section of `ticket-lifecycle/SKILL.md` is platform-agnostic and worth keeping.
+
+## Releasing (for maintainers)
+
+Versions are just text in the `VERSION` files; nothing on GitHub enforces them. To cut a release, bump the same number in all three `VERSION` files (`VERSION`, `ticket-lifecycle/VERSION`, `managing-project-backlog/VERSION`) and push to `main`. Use plain semver: patch (1.0.x) for fixes, minor (1.x.0) for new behaviour, major (x.0.0) for breaking changes. The update check just compares these strings, so the moment `main` carries a higher number than someone's local copy, they get offered the update.
 
 ## License
 
