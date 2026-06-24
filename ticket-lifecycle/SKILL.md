@@ -122,29 +122,48 @@ If simplify produces non-trivial changes, fold them into the same commit (or a f
 
 ### Phase 3: Code Review
 
-Once all implementation agents complete:
+Once all implementation agents complete, review each PR with a small set of **adversarial lenses** rather than one generalist pass. Each lens is its own cold review agent (isolation rules below), reviewing the same diff with a different job and a sceptical default: find the worst real problem, and if there genuinely isn't one, say so explicitly.
 
-1. Dispatch one **code review agent** per PR in parallel (use Agent tool with `subagent_type: "superpowers:code-reviewer"` if you have the superpowers plugin installed; otherwise use `subagent_type: "general-purpose"` with a strict review prompt)
-2. Each reviewer runs `gh pr diff {n}` and reviews against `CLAUDE.md` standards
-3. Collate all review results
+**Why lenses, not one reviewer:** a fresh cold reviewer removes *context* bias (it isn't swayed by the implementer's reasoning), but a same-model reviewer running a generic prompt still shares the implementer's *attention* blind spots — it glosses over the same things. Giving each reviewer a distinct adversarial job decorrelates where they look, which recovers most of the benefit of an independent reviewer at no loss of review power. (You don't need a weaker model; you need a differently-pointed one.)
 
-**CRITICAL: Review isolation.** The review agent MUST be a fresh agent with NO context from the implementation session. This is non-negotiable. The review agent should:
+**The lens set — tiered by risk, so you don't pay for more than the diff needs:**
+
+| Diff | Lenses to run |
+|---|---|
+| Trivial (typo, copy, config one-liner) | **Breaker** only |
+| Normal (the default) | **Breaker** + **Tests** |
+| Sensitive (touches auth, API, input handling, secrets, payments, or a security-labelled ticket) | **Breaker** + **Tests** + **Security** |
+| High-stakes | all three, and if you have a second capable model available, run one lens on it for true model-level decorrelation |
+
+The lenses:
+
+- **Breaker (correctness)** — actively try to make it fail: edge cases, bad input, unhandled states, and whether it *actually* satisfies the ticket rather than just looking like it does. The workhorse; always runs.
+- **Tests** — is the right thing tested, and do the assertions check *correct* behaviour rather than rubber-stamping whatever the code currently does? (A reviewer sharing the implementer's blind spot will happily approve a test that asserts the bug. This lens is the guard against that.)
+- **Security** (sensitive diffs only) — assume hostile input: auth/session/token handling, injection, secret/credential exposure, data leakage.
+
+Per-lens prompt templates are in `references/agent-prompts.md`.
+
+1. **Dispatch the lens set for each PR in parallel** (use Agent tool with `subagent_type: "superpowers:code-reviewer"` if installed; otherwise `subagent_type: "general-purpose"` with the lens prompt). Pick the tier from the table by inspecting the diff. Each lens runs `gh pr diff {n}` and reviews against `CLAUDE.md` standards through its own lens.
+2. **Merge and dedupe across lenses** — the same issue may surface from two lenses; collapse it to one finding, keeping the most serious framing.
+3. Collate the merged results per PR.
+
+**CRITICAL: Review isolation.** Every lens reviewer MUST be a fresh agent with NO context from the implementation session. This is non-negotiable, and it applies to each lens independently. Each lens reviewer should:
 - Have NO knowledge of what the implementation agent was asked to do or why
 - See ONLY the diff (`gh pr diff`) and project standards (CLAUDE.md, lessons doc)
 - Form its own judgement about code quality, completeness, and correctness
 - NOT be swayed by the implementation agent's reasoning or trade-offs
 
-The review agent prompt must NEVER include:
+A lens reviewer prompt must NEVER include:
 - The implementation agent's prompt or output
 - Summaries of what was built or why
 - Justifications for design decisions
 - "The agent did X because Y" context
 
-The review agent prompt SHOULD include:
+A lens reviewer prompt SHOULD include:
 - The PR number and repo
 - A one-sentence factual description of what the PR does (e.g., "adds a files dashboard at /files")
 - Instructions to read CLAUDE.md and the lessons doc
-- Specific areas to check (security, input validation, auth, tests, YAGNI, etc.)
+- **The lens's specific adversarial job and checklist** (see the per-lens templates in `references/agent-prompts.md`)
 
 This ensures the review is a genuine independent assessment, not a rubber stamp of the implementation.
 
@@ -177,7 +196,7 @@ For any PR with "must fix" items, run a **review loop** until the reviewer retur
 1. Dispatch a fix agent to the existing worktree/branch
 2. Agent addresses ALL "must fix" feedback from the latest review
 3. Agent commits, pushes, and watches CI until green
-4. Dispatch a **fresh** code review agent on the updated PR (same isolation rules as Phase 3 — no context from prior rounds, no knowledge of what was fixed or why)
+4. Re-review the updated PR by **re-running only the lens(es) that raised the must-fix** — usually **Breaker**; add **Tests** if a test issue was the blocker, or **Security** for a sensitive diff. A fresh agent per lens each round (same isolation rules as Phase 3 — no context from prior rounds, no knowledge of what was fixed or why). Re-running the whole lens set every round is rarely worth the cost; the lens that found the problem is the one that confirms the fix.
 5. Categorise the new findings using the same buckets as Phase 3:
    - **Must fix** → another fix-and-review round
    - **Follow-up tickets** → defer to Phase 5 (do NOT block the loop on these)

@@ -94,36 +94,62 @@ The review agent MUST be a cold reviewer with ZERO context from the implementati
 - Specific areas to check
 - Instructions to post the review as a comment on the PR
 
-### Structure
+### Reviewing through lenses
+
+Don't run one generalist review. Run a small set of **adversarial lenses**, each its own cold agent (isolation rules above), each with a different job. This decorrelates *where* reviewers look, so a same-model reviewer doesn't just share the implementer's blind spots. Pick the tier by inspecting the diff:
+
+- **Trivial** (typo, copy, config one-liner): **Breaker** only
+- **Normal** (default): **Breaker** + **Tests**
+- **Sensitive** (auth, API, input handling, secrets, payments, or a security-labelled ticket): **Breaker** + **Tests** + **Security**
+
+Every lens defaults to scepticism: find the worst real problem, and if there genuinely isn't one, say so rather than manufacturing nits.
+
+**Shared scaffold (every lens uses this, then adds its own job):**
 
 ```
-Review PR #{n} in the <OWNER>/<REPO> repo.
-[One factual sentence — what the PR does, not why].
+Review PR #{n} in the <OWNER>/<REPO> repo. [One factual sentence — what the PR does, not why.]
 Run `gh pr diff {n}` to see the diff.
-Read CLAUDE.md for project standards.
-Read [path/to/lessons.md] for historical engineering lessons.
-Focus especially on: [project-specific concerns — security, auth, input validation, tests, etc.].
+Read CLAUDE.md for project standards and [path/to/lessons.md] for historical lessons.
+You are a COLD reviewer: you know nothing about why the code was written this way. Judge only the diff against the standards.
+[--- lens-specific job goes here ---]
+Categorise findings as Must-fix / Follow-up / Observation. If nothing is blocking, say so explicitly.
 Post your review as a comment on the PR.
+```
+
+**Breaker lens (correctness — always runs):**
+
+```
+Your job is to BREAK this change. Assume it's wrong until proven otherwise.
+- Find inputs, states, and edge cases that make it misbehave (empty, null, huge, malformed, concurrent, out-of-order).
+- Check it ACTUALLY does what the ticket asked, not just something that looks plausible.
+- Hunt for off-by-one, wrong boundary, swallowed error, unhandled branch, race condition.
+Report the single most serious way it breaks first.
+```
+
+**Tests lens (runs at Normal and above):**
+
+```
+Your job is to judge the tests, not the feature.
+- Is the actual behaviour change covered, or only incidental paths?
+- CRITICAL: do the assertions check the CORRECT expected behaviour, or do they just assert whatever the code currently happens to do? A test that locks in a bug is worse than no test — flag it.
+- What realistic regression would still slip through with these tests green? Name it.
+If the change needs tests and has none, that is a Must-fix.
+```
+
+**Security lens (sensitive diffs only):**
+
+```
+Your job is to attack this change. Assume hostile input and a motivated attacker.
+- Auth/session/token handling: anything missing, bypassable, or trusting client-supplied input?
+- Injection (SQL/command/template), XSS (any HTML entering the DOM must be sanitised), SSRF, path traversal.
+- Secrets/credentials in code or logs; sensitive data exposed in responses or error messages.
+- Missing authz or rate limiting on new endpoints.
+Report exploitable issues as Must-fix, each with the attack that triggers it.
 ```
 
 ### Use a code reviewer agent type
 
-If you have a code-reviewer subagent (e.g., from the superpowers plugin: `subagent_type: "superpowers:code-reviewer"`), use it. Otherwise use `general-purpose` with a strict review prompt. Either way the agent type ensures a fresh context with no bleed from the implementation session.
-
-### What to ask reviewers to check
-
-Adapt this to your stack. Common universal checks:
-
-- **Security** (auth/session/token handling, database query construction, sensitive data exposure)
-- **Input validation** at trust boundaries
-- **XSS** — any HTML going into DOM must be sanitized
-- **Rate limiting** on new endpoints
-- **Tests** — missing or inadequate test coverage (or manual verification steps in PR body)
-- **YAGNI violations** — speculative abstractions, unused code paths
-- **DRY violations** — duplicated logic
-- **Error handling** — leaked stack traces or internals to clients
-- **Consistency with existing patterns** in the codebase
-- **Whether the fix actually addresses the issue**
+If you have a code-reviewer subagent (e.g., from the superpowers plugin: `subagent_type: "superpowers:code-reviewer"`), use it for each lens. Otherwise use `general-purpose` with the lens prompt. Either way the agent type ensures a fresh context with no bleed from the implementation session. For the strongest decorrelation on high-stakes diffs, run one lens on a *different* capable model.
 
 ## Fix Feedback Agent Prompts
 
