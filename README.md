@@ -156,7 +156,17 @@ The skills are GitHub Projects-shaped today. If you use Linear / Jira / Plane / 
 
 ## Releasing (for maintainers)
 
-Versions are just text in the `VERSION` files; nothing on GitHub enforces them. To cut a release, bump the same number in all three `VERSION` files (`VERSION`, `ticket-lifecycle/VERSION`, `managing-project-backlog/VERSION`) and push to `main`. Use plain semver: patch (1.0.x) for fixes, minor (1.x.0) for new behaviour, major (x.0.0) for breaking changes. The update check just compares these strings, so the moment `main` carries a higher number than someone's local copy, they get offered the update.
+Versions are just text in the `VERSION` files; nothing on GitHub enforces them. Use the bundled helper to bump all three at once:
+
+```bash
+./bump.sh patch   # 1.0.0 -> 1.0.1  (a fix)
+./bump.sh minor   # 1.0.0 -> 1.1.0  (new behaviour)
+./bump.sh major   # 1.0.0 -> 2.0.0  (breaking change)
+./bump.sh 1.4.2   # or set it explicitly
+./bump.sh         # no args: show the current version
+```
+
+It writes `VERSION`, `ticket-lifecycle/VERSION` and `managing-project-backlog/VERSION`, then prints the git commands to publish (it does not commit or push for you). Once `main` carries a higher number than someone's local copy, the update check offers it to them within a day. Plain semver: patch for fixes, minor for new behaviour, major for breaking changes.
 
 ## License
 
