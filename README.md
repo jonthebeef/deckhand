@@ -60,27 +60,42 @@ So the context stays deliberately tight: one clear task, the minimum surrounding
 - **The `simplify` skill** - `ticket-lifecycle` Phase 2.5 runs it on each change before review, so PRs reach the reviewer already de-duplicated and free of dead code. If it isn't installed the phase is skipped automatically (Phase 3's review still catches the same issues), so it's a nice-to-have, not a hard dependency.
 - **A code-reviewer subagent** (e.g. `superpowers:code-reviewer`) for Phase 3's isolated review. Without it, the skill falls back to a `general-purpose` agent with a strict review prompt.
 
-## Install
+deckhand ships as a **Claude Code plugin**, and the same two skills also work standalone on Codex and Cursor. Pick whichever fits.
 
-**What you actually need:** only the two skill folders, `ticket-lifecycle/` and `managing-project-backlog/`. Everything else at the repo root (`bump.sh`, `CLAUDE.md`, the root `VERSION`, this `README`) is for *maintaining* deckhand, not running it, so you can ignore it.
+**What you actually need:** the two skills under `skills/` (`ticket-lifecycle/` and `managing-project-backlog/`). Everything else in the repo (`.claude-plugin/`, `bump.sh`, `CLAUDE.md`, `CHANGELOG.md`, the root `VERSION`, this `README`) is plugin packaging and maintenance, not something you run.
 
-**The easy way (recommended):** you don't have to move anything by hand. Drag the two skill folders straight into a **Claude Code** or **Codex** session (or just point the agent at them) and say something like *"install these two skills for me"*. The agent knows where skills live (`~/.claude/skills/` for Claude Code) and will put them in the right place for you. Carry straight on into first-run setup below and it'll handle that too.
+### Claude Code (plugin)
 
-**One line, no clone (grabs only the skills):**
+Add the marketplace, then install:
+
+```
+/plugin marketplace add jonthebeef/deckhand
+/plugin install deckhand@deckhand
+```
+
+The plugin bundles both skills and namespaces them as `/deckhand:ticket-lifecycle` and `/deckhand:managing-project-backlog`. Updates come through the plugin manager. Then carry on into first-run setup below.
+
+### Claude Code or Codex (skills only, no plugin)
+
+Let the agent do it: drag the two folders from `skills/` into a session and say *"install these two skills for me"*. Or grab just the skills with one line, no clone:
 
 ```bash
 mkdir -p ~/.claude/skills
 curl -fsSL https://codeload.github.com/jonthebeef/deckhand/tar.gz/refs/heads/main \
-  | tar -xz -C ~/.claude/skills --strip-components=1 \
-      deckhand-main/ticket-lifecycle deckhand-main/managing-project-backlog
+  | tar -xz -C ~/.claude/skills --strip-components=2 \
+      deckhand-main/skills/ticket-lifecycle deckhand-main/skills/managing-project-backlog
 ```
 
-This drops just the two skill folders into `~/.claude/skills/`, nothing else. On Codex or Cursor, point `-C` at that platform's skills/rules location instead.
+This drops just the two skill folders into `~/.claude/skills/`, nothing else. On Codex, point `-C` at its skills location instead.
 
-**The manual way (if you've already cloned the repo):**
+### Cursor
+
+Cursor uses rules rather than skills, so reference the two `skills/*/SKILL.md` files as project rules (e.g. under `.cursor/rules/`) or from your `AGENTS.md`.
+
+### Manual (already cloned)
 
 ```bash
-cp -R ticket-lifecycle managing-project-backlog ~/.claude/skills/
+cp -R skills/ticket-lifecycle skills/managing-project-backlog ~/.claude/skills/
 ```
 
 ## First-run setup
@@ -148,24 +163,18 @@ When you accept an update (or ask for one), the agent updates the skills in plac
 
 ## Platform support
 
-deckhand is plain Markdown plus `gh` and `curl`, so it runs anywhere an agent can run a shell. Only the install location differs per platform:
-
-- **Claude Code:** drop the skill folders in `~/.claude/skills/` (or let the agent install them, see Install above).
-- **Codex:** Codex loads skills natively; place the folders in your Codex skills location and it picks them up.
-- **Cursor:** Cursor uses rules rather than skills, so reference the two `SKILL.md` files as project rules (e.g. under `.cursor/rules/`) or from your `AGENTS.md`.
-
-The update check and the update itself both work relative to wherever the skill actually lives, so they behave the same on all three.
+deckhand is plain Markdown plus `gh` and `curl`, so it runs anywhere an agent can run a shell. The Claude Code plugin is the simplest route on Claude Code; the standalone skills under `skills/` cover Codex and Cursor (see Install above for each). The update check and the in-place update both work relative to wherever a skill actually lives, so they behave the same everywhere.
 
 ## Troubleshooting
 
 - **`gh: command not found`** - install the GitHub CLI and `gh auth login`.
 - **`addSubIssue` mutation fails** - your `gh` token may lack the right scopes. Re-run `gh auth refresh -s repo,project`.
 - **`setup.sh` reports a missing field** - your board may not have a `Status` field, or it's named something else. Edit `board-config.md` manually after the script runs.
-- **The skills can't find `board-config.md`** - `setup.sh` writes to `ticket-lifecycle/references/board-config.md` and `managing-project-backlog/board-config.md`. Confirm both exist.
+- **The skills can't find `board-config.md`** - `setup.sh` writes to `skills/ticket-lifecycle/references/board-config.md` and `skills/managing-project-backlog/board-config.md` (or the equivalent inside your install location). Confirm both exist.
 
 ## Adapting beyond GitHub
 
-The skills are GitHub Projects-shaped today. If you use Linear / Jira / Plane / etc., the workflow discipline (Phase 0-7) still applies; the mechanics (the `gh` and GraphQL calls) would need rewriting against your API. The principles section of `ticket-lifecycle/SKILL.md` is platform-agnostic and worth keeping.
+The skills are GitHub Projects-shaped today. If you use Linear / Jira / Plane / etc., the workflow discipline (Phase 0-7) still applies; the mechanics (the `gh` and GraphQL calls) would need rewriting against your API. The principles section of `skills/ticket-lifecycle/SKILL.md` is platform-agnostic and worth keeping.
 
 ## Releasing (for maintainers)
 
@@ -179,7 +188,7 @@ Versions are just text in the `VERSION` files; nothing on GitHub enforces them. 
 ./bump.sh         # no args: show the current version
 ```
 
-It writes `VERSION`, `ticket-lifecycle/VERSION` and `managing-project-backlog/VERSION`, then prints the git commands to publish (it does not commit or push for you). Once `main` carries a higher number than someone's local copy, the update check offers it to them within a day. Plain semver: patch for fixes, minor for new behaviour, major for breaking changes.
+It writes the root `VERSION`, both `skills/*/VERSION` files, and the version in `.claude-plugin/plugin.json`, then prints the git commands to publish (it does not commit or push for you). Once `main` carries a higher number than someone's local copy, the update check offers it to them within a day, and the plugin manager picks up the new `plugin.json` version. Plain semver: patch for fixes, minor for new behaviour, major for breaking changes.
 
 ## License
 

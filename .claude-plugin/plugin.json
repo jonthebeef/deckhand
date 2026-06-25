@@ -1,0 +1,19 @@
+{
+  "name": "deckhand",
+  "description": "Drive a GitHub Projects v2 kanban board end to end. Two skills: plan the backlog (epics, sub-issues, board hygiene), then run tickets through implement, isolated adversarial review, fix-loop, and merge.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jon Grant"
+  },
+  "homepage": "https://github.com/jonthebeef/deckhand",
+  "repository": "https://github.com/jonthebeef/deckhand",
+  "license": "MIT",
+  "keywords": [
+    "github-projects",
+    "kanban",
+    "backlog",
+    "workflow",
+    "code-review",
+    "tickets"
+  ]
+}

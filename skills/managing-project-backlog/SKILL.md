@@ -1,6 +1,6 @@
 ---
 name: managing-project-backlog
-description: "MUST be invoked at the START of any session that touches the GitHub Projects board, BEFORE running any gh issue / gh project / gh pr command tied to ticket workflow. Trigger phrases include but are not limited to - 'the backlog', 'the board', 'the kanban', 'this epic', 'this ticket', 'this issue', 'pick up #N', 'work on #N', 'what's next', 'what should I do next', 'move to Doing/Review/Done', 'create an epic', 'create a sub-issue', 'break this into tickets', 'add to the project', 'prioritize', 'plan this work', 'what's in the backlog', 'review the board'. Also fires when the user pastes a GitHub Projects URL, an issue number prefixed with #, or asks about how a ticket fits its epic. If in doubt — invoke. The cost of invoking unnecessarily is near zero; the cost of skipping is silent drift from the team's workflow."
+description: "Plan and maintain a GitHub Projects v2 board with the deckhand workflow: create epics, break them into linked sub-issues, prioritise, assign owners, and move tickets across the kanban (Backlog, Prioritized, Doing, Review, Done). Use eagerly when working a board: 'the backlog', 'the board', 'pick up #N', 'work on #N', 'what's next', 'what should I do next', 'create an epic', 'break this into tickets', 'prioritise', a pasted GitHub Projects URL, or /managing-project-backlog. The skill is board-aware: it confirms a GitHub Projects board is in play (configured for this repo, or present on it) before acting, and steps aside if there is no board, so it never barges into an unrelated repo."
 user-invocable: true
 ---
 
@@ -8,13 +8,19 @@ user-invocable: true
 
 Automate the GitHub Projects kanban workflow — from epic creation through to merged. Every piece of work traces back to an epic; every epic connects to the product roadmap.
 
-> **⛔ Invocation rule — read first.** This skill is the **default workflow** for any work that touches a GitHub Projects board. If the current session involves issues, epics, sub-issues, the kanban, prioritization, or "what should I work on next" — you are inside this skill's scope and must follow it. New sessions in particular are at risk of skipping this skill because the kanban context isn't in conversation history yet — when a user mentions "the board", "the backlog", "a ticket", "#N", or any epic/sub-issue concept, that IS the signal. Invoke immediately, before running any `gh` command or proposing work order. Re-invoke at the top of every new session that involves backlog work, even if it seems obvious.
+> **⛔ Invocation rule — read first.** This skill governs the deckhand GitHub Projects board workflow. Fire **eagerly** when the user is doing board work — "the board", "the backlog", "pick up #N", "work on #N", "what's next", epics, sub-issues, prioritising, a pasted GitHub Projects URL. Then apply the board-awareness gate in the first-invocation protocol below: if a board is in play (configured, or present on the repo) act on it; if there is genuinely no board, step aside rather than barging in. Once you're doing board operations, follow this skill's conventions consistently for the rest of the session.
 >
 > If you find yourself about to run `gh issue ...`, `gh project ...`, or pick up an issue without having read this skill in the current session — STOP and load it first. The board IDs, column mappings, and the "read epic + siblings before starting" protocol below are not optional context.
 
 > **⚠ First-invocation protocol (read this BEFORE running any board operation).**
 >
-> Before doing anything else, read `board-config.md` next to this file. If it still contains placeholder values (any of `<OWNER>`, `<REPO>`, `<PROJECT_NUMBER>`, `<PROJECT_ID>`, `<STATUS_FIELD_ID>`, `<EPICS_OPTION_ID>`, etc.), the skill is not configured for this project yet. **You — the assisting Claude — must run setup before any board operation.**
+> deckhand only operates on a GitHub Projects board, so first establish which situation you're in by reading `board-config.md` next to this file:
+>
+> - **Configured** — `board-config.md` has no `<...>` placeholders (`<OWNER>`, `<REPO>`, `<PROJECT_NUMBER>`, `<PROJECT_ID>`, `<STATUS_FIELD_ID>`, `<EPICS_OPTION_ID>`, etc.). Proceed as normal — this is the everyday case, and "pick up #N" / "what's next" should just work.
+> - **Not configured, but a board is in play** — placeholders remain, but the user is clearly doing GitHub Projects board work, or the repo's owner has a board (a quick `gh project list --owner <owner>` returns one). Offer to wire deckhand up: run setup (below), then proceed. Ask first; don't force it.
+> - **No board in play** — placeholders remain AND there is no GitHub Projects board to drive (not a GitHub repo, or `gh project list` comes back empty, and the user only said something generic). Step aside: briefly say deckhand runs off a GitHub Projects board and you don't see one here, offer to set one up if they'd like, and otherwise do nothing. Do NOT run board operations or push setup on someone who has no board.
+>
+> When a board is in play but not yet configured, set it up before any board operation. **You — the assisting Claude — must run setup before any board operation.**
 >
 > Two options, in order of preference:
 >
@@ -38,7 +44,7 @@ Automate the GitHub Projects kanban workflow — from epic creation through to m
 > [ -f "$DIR/.last-update-check" ] && [ -z "$(find "$DIR/.last-update-check" -mtime +0 2>/dev/null)" ] && exit 0  # checked < 24h ago
 > touch "$DIR/.last-update-check"
 > LOCAL=$(cat "$DIR/VERSION" 2>/dev/null)
-> REMOTE=$(curl -fsS --max-time 3 https://raw.githubusercontent.com/jonthebeef/deckhand/main/managing-project-backlog/VERSION 2>/dev/null)
+> REMOTE=$(curl -fsS --max-time 3 https://raw.githubusercontent.com/jonthebeef/deckhand/main/skills/managing-project-backlog/VERSION 2>/dev/null)
 > [ -n "$REMOTE" ] && [ "$REMOTE" != "$LOCAL" ] && echo "deckhand update available: $LOCAL -> $REMOTE"
 > ```
 >

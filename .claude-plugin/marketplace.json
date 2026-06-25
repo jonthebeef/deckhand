@@ -1,0 +1,17 @@
+{
+  "name": "deckhand",
+  "owner": {
+    "name": "Jon Grant",
+    "url": "https://github.com/jonthebeef"
+  },
+  "metadata": {
+    "description": "deckhand: two skills that drive a GitHub Projects v2 kanban board end to end (plan the backlog, then run tickets through implement, review, fix-loop, and merge)."
+  },
+  "plugins": [
+    {
+      "name": "deckhand",
+      "source": ".",
+      "description": "Drive a GitHub Projects v2 kanban board end to end: plan the backlog, then run tickets through implement, isolated adversarial review, fix-loop, and merge."
+    }
+  ]
+}
