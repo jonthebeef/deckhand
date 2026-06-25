@@ -1,6 +1,6 @@
 ---
 name: ticket-lifecycle
-description: "Run the deckhand ticket lifecycle: take GitHub issues from a GitHub Projects board through implementation, isolated adversarial review, a fix-loop, CI gating, and merge. Use when the user explicitly asks to 'iterate on these tickets', 'run the ticket lifecycle', 'process the prioritized column', work a batch of issue numbers or an epic through to merged, or invokes /ticket-lifecycle. Modular: use whichever of the Phase 1 to 7 steps fit (single ticket, single PR, cleanup-only, and constrained single-thread environments all work). Do not fire on a generic 'fix this bug' or a bare issue number unless the user clearly wants the full board-driven lifecycle and a GitHub Projects board is configured."
+description: "Run the deckhand ticket lifecycle: take GitHub issues from a GitHub Projects board through implementation, isolated adversarial review, a fix-loop, CI gating, and merge. Use eagerly when working a board: 'iterate on these tickets', 'work through the backlog', 'pick up #N', 'process the prioritized column', a batch of issue numbers, an epic, or /ticket-lifecycle. The skill is board-aware: it confirms a GitHub Projects board is in play (configured for this repo, or present on it) before acting, and steps aside if there is no board, so it never barges into an unrelated repo. Modular: use whichever of the Phase 1 to 7 steps fit (single ticket, single PR, cleanup-only, and constrained single-thread environments all work)."
 ---
 
 # Ticket Lifecycle
@@ -25,7 +25,13 @@ Automated batch ticket processing for any GitHub-Projects-driven repo. Take a se
 
 > **⚠ First-invocation protocol (read this BEFORE running any phase).**
 >
-> Before doing anything else, read `references/board-config.md`. If it still contains placeholder values (any of `<OWNER>`, `<REPO>`, `<PROJECT_NUMBER>`, `<PROJECT_ID>`, `<STATUS_FIELD_ID>`, `<EPICS_OPTION_ID>`, etc.), the skill is not configured for this project yet. **You — the assisting Claude — must run setup before any board operation.**
+> deckhand only operates on a GitHub Projects board, so first establish which situation you're in by reading `references/board-config.md`:
+>
+> - **Configured** — `board-config.md` has no `<...>` placeholders (`<OWNER>`, `<REPO>`, `<PROJECT_NUMBER>`, `<PROJECT_ID>`, `<STATUS_FIELD_ID>`, `<EPICS_OPTION_ID>`, etc.). Proceed with the workflow as normal — this is the everyday case, and "pick up #N" / "process prioritized" should just work.
+> - **Not configured, but a board is in play** — placeholders remain, but the user is clearly doing GitHub Projects board work, or the repo's owner has a board (a quick `gh project list --owner <owner>` returns one). Offer to wire deckhand up: run setup (below), then proceed. Ask first; don't force it.
+> - **No board in play** — placeholders remain AND there is no GitHub Projects board to drive (not a GitHub repo, or `gh project list` comes back empty, and the user only said something generic). Step aside: briefly say deckhand runs off a GitHub Projects board and you don't see one here, offer to set one up if they'd like, and otherwise do nothing. Do NOT run board operations or push setup on someone who has no board.
+>
+> When a board is in play but not yet configured, set it up before any board operation. **You — the assisting Claude — must run setup before any board operation.**
 >
 > Two options, in order of preference:
 >

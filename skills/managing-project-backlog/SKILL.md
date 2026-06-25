@@ -1,6 +1,6 @@
 ---
 name: managing-project-backlog
-description: "Plan and maintain a GitHub Projects v2 board with the deckhand workflow: create epics, break them into linked sub-issues, prioritise, assign owners, and move tickets across the kanban (Backlog, Prioritized, Doing, Review, Done). Use when the user is clearly working a GitHub Projects board, asks to plan or organise backlog work, pastes a GitHub Projects URL, references the deckhand board workflow, or invokes /managing-project-backlog. Prefer the explicit command for ad-hoc use. Do not fire on a generic mention of an issue number, 'fix this', or 'what's next' unless GitHub Projects board work is clearly intended and a board is configured."
+description: "Plan and maintain a GitHub Projects v2 board with the deckhand workflow: create epics, break them into linked sub-issues, prioritise, assign owners, and move tickets across the kanban (Backlog, Prioritized, Doing, Review, Done). Use eagerly when working a board: 'the backlog', 'the board', 'pick up #N', 'work on #N', 'what's next', 'what should I do next', 'create an epic', 'break this into tickets', 'prioritise', a pasted GitHub Projects URL, or /managing-project-backlog. The skill is board-aware: it confirms a GitHub Projects board is in play (configured for this repo, or present on it) before acting, and steps aside if there is no board, so it never barges into an unrelated repo."
 user-invocable: true
 ---
 
@@ -8,13 +8,19 @@ user-invocable: true
 
 Automate the GitHub Projects kanban workflow — from epic creation through to merged. Every piece of work traces back to an epic; every epic connects to the product roadmap.
 
-> **⛔ Invocation rule — read first.** This skill governs the deckhand GitHub Projects board workflow. Use it when the user is clearly working a GitHub Projects board: epics, sub-issues, the kanban, prioritisation, or "what should I pick up next" on a configured board. A pasted GitHub Projects URL, or an explicit request to plan or organise the backlog, is a clear signal. A bare issue number or a generic "fix this" is **not**, on its own — only treat board work as in scope when the user clearly means the board and one is configured (see first-run setup). Once you are doing board operations, follow this skill's conventions consistently for the rest of the session.
+> **⛔ Invocation rule — read first.** This skill governs the deckhand GitHub Projects board workflow. Fire **eagerly** when the user is doing board work — "the board", "the backlog", "pick up #N", "work on #N", "what's next", epics, sub-issues, prioritising, a pasted GitHub Projects URL. Then apply the board-awareness gate in the first-invocation protocol below: if a board is in play (configured, or present on the repo) act on it; if there is genuinely no board, step aside rather than barging in. Once you're doing board operations, follow this skill's conventions consistently for the rest of the session.
 >
 > If you find yourself about to run `gh issue ...`, `gh project ...`, or pick up an issue without having read this skill in the current session — STOP and load it first. The board IDs, column mappings, and the "read epic + siblings before starting" protocol below are not optional context.
 
 > **⚠ First-invocation protocol (read this BEFORE running any board operation).**
 >
-> Before doing anything else, read `board-config.md` next to this file. If it still contains placeholder values (any of `<OWNER>`, `<REPO>`, `<PROJECT_NUMBER>`, `<PROJECT_ID>`, `<STATUS_FIELD_ID>`, `<EPICS_OPTION_ID>`, etc.), the skill is not configured for this project yet. **You — the assisting Claude — must run setup before any board operation.**
+> deckhand only operates on a GitHub Projects board, so first establish which situation you're in by reading `board-config.md` next to this file:
+>
+> - **Configured** — `board-config.md` has no `<...>` placeholders (`<OWNER>`, `<REPO>`, `<PROJECT_NUMBER>`, `<PROJECT_ID>`, `<STATUS_FIELD_ID>`, `<EPICS_OPTION_ID>`, etc.). Proceed as normal — this is the everyday case, and "pick up #N" / "what's next" should just work.
+> - **Not configured, but a board is in play** — placeholders remain, but the user is clearly doing GitHub Projects board work, or the repo's owner has a board (a quick `gh project list --owner <owner>` returns one). Offer to wire deckhand up: run setup (below), then proceed. Ask first; don't force it.
+> - **No board in play** — placeholders remain AND there is no GitHub Projects board to drive (not a GitHub repo, or `gh project list` comes back empty, and the user only said something generic). Step aside: briefly say deckhand runs off a GitHub Projects board and you don't see one here, offer to set one up if they'd like, and otherwise do nothing. Do NOT run board operations or push setup on someone who has no board.
+>
+> When a board is in play but not yet configured, set it up before any board operation. **You — the assisting Claude — must run setup before any board operation.**
 >
 > Two options, in order of preference:
 >

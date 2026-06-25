@@ -26,5 +26,5 @@ A Claude Code **plugin** bundling two skills, `ticket-lifecycle` and `managing-p
 - Shell scripts (`setup.sh`, `bump.sh`) must stay bash 3.2 safe (the macOS default). No `mapfile`/`readarray`, `declare -A`, or other bash 4+ features.
 - Ship `board-config.md` only as the placeholder template. Never commit a populated copy. The runtime markers `.last-update-check` and `.no-update-check` are gitignored; don't commit them.
 - Each skill must stay self-contained, so it still works when installed on its own.
-- Skill `description` frontmatter controls auto-triggering. Keep it conditional (clear GitHub Projects board intent plus a configured board), not eager, so the plugin does not over-fire in other people's repos. The slash commands stay the explicit path.
+- Triggering is **eager but board-aware**. The `description` frontmatter fires readily on board phrases ("pick up #N", "what's next", "the backlog") - that eager feel is the point, keep it. The first-invocation protocol then checks a GitHub Projects board is actually in play (configured for the repo, or present on it) and steps aside if there genuinely isn't one. Keep both halves: eager to fire, board-aware before acting. Don't make the descriptions timid, and don't drop the step-aside gate.
 - Run `claude plugin validate .` before publishing or submitting to a marketplace.
